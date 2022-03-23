@@ -30,8 +30,7 @@ kill_file()
     then
         cp -n $1 $log_dir/file
         chattr -ia $1
-        echo 'botgank' > $1
-        chattr +ia $1
+        rm -rf $1
         echo "[+] clean file --> $1" | tee -a $log_file
     fi
 }
