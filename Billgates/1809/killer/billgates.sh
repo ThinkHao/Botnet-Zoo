@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 上次修改时间 --> 2020-8-25
+# 上次修改时间 --> 2022-3-31
 # --------------------------------------------------
 # 创建备份目录，以清除时间命名
 
@@ -86,27 +86,27 @@ kill_cron()
 # 恢复系统文件netstat
 if [ -f "/usr/bin/dpkgd/netstat" ]
 then
-	$busybox chattr -i /bin/netstat
+	$busybox chattr -ai /bin/netstat
 	rm -f /bin/netstat
-	cp -n -f /usr/bin/dpkgd/netstat /bin/
 	
-	$busybox chattr -i /usr/bin/netstat
+	$busybox chattr -ai /usr/bin/netstat
 	rm -f /usr/bin/netstat
-	cp -n -f /usr/bin/dpkgd/netstat /usr/bin/
     
+    yum reinstall net-tools -y
+
     echo "[+] recover file --> netstat" | tee -a $log_file
 fi
 
 # 恢复系统文件lsof
 if [ -f "/usr/bin/dpkgd/lsof" ]
 then
-	$busybox chattr -i /bin/lsof
+	$busybox chattr -ai /bin/lsof
 	rm -f /bin/lsof
-	cp -n -f /usr/bin/dpkgd/lsof /bin/
 	
-	$busybox chattr -i /usr/bin/lsof 
+	$busybox chattr -ai /usr/bin/lsof 
 	rm -f /usr/bin/lsof
-	cp -n -f /usr/bin/dpkgd/lsof /usr/bin/
+
+    yum reinstall lsof -y
 
     echo "[+] recover file --> lsof" | tee -a $log_file
 fi
@@ -114,13 +114,13 @@ fi
 # 恢复系统文件ps
 if [ -f "/usr/bin/dpkgd/ps" ]
 then
-	$busybox chattr -i /bin/ps
+	$busybox chattr -ai /bin/ps
 	rm -f /bin/ps
-	cp -n -f /usr/bin/dpkgd/ps /bin/
 	
-	$busybox chattr -i /usr/bin/ps
+	$busybox chattr -ai /usr/bin/ps
 	rm -f /usr/bin/ps
-	cp -n -f /usr/bin/dpkgd/ps /usr/bin/
+
+    yum reinstall procps -y
 
     echo "[+] recover file --> ps" | tee -a $log_file
 fi
@@ -128,13 +128,13 @@ fi
 # 恢复系统文件ss
 if [ -f "/usr/bin/dpkgd/ss" ]
 then
-	$busybox chattr -i /bin/ss
+	$busybox chattr -ai /bin/ss
 	rm -f /bin/ss
-	cp -n -f /usr/bin/dpkgd/ss /bin/
 	
-	$busybox chattr -i /usr/bin/ss
+	$busybox chattr -ai /usr/bin/ss
 	rm -f /usr/bin/ss
-	cp -n -f /usr/bin/dpkgd/ss /usr/bin/
+
+    yum reinstall iproute -y
 
     echo "[+] recover file --> ss" | tee -a $log_file
 fi
@@ -169,7 +169,7 @@ then
         if [ -n "$($busybox ps -elf | grep $proc_id | grep -v grep)" ]
         then
             cat /proc/$proc_id/exe >> $log_dir/process/$proc_id-sshd.dump
-            echo "[+] clean process --> $proc_id" | tee -a $log_file
+            echo "[+] clean process .sshd --> $proc_id" | tee -a $log_file
             kill -9 $proc_id
         fi
     fi
@@ -184,7 +184,7 @@ then
         if [ -n "$($busybox ps -elf | grep $proc_id | grep -v grep)" ]
         then
             cat /proc/$proc_id/exe >> $log_dir/process/$proc_id-getty.dump
-            echo "[+] clean process --> $proc_id" | tee -a $log_file
+            echo "[+] clean process getty --> $proc_id" | tee -a $log_file
             kill -9 $proc_id
         fi
     fi
@@ -198,14 +198,15 @@ then
         if [ -n "$($busybox ps -elf | grep $proc_id | grep -v grep)" ]
         then
             cat /proc/$proc_id/exe >> $log_dir/process/$proc_id-getty2.dump
-            echo "[+] clean process --> $proc_id" | tee -a $log_file
+            echo "[+] clean process getty.lock --> $proc_id" | tee -a $log_file
             kill -9 $proc_id
         fi
     fi
 fi
 
-# 清除病毒进程
-pids="$(ps -elf | grep '/tmp/9999' | grep -v grep | awk '{print $4}')"
+# 清除病毒进程(进程名称通常是随机的，因此从文件中获取)
+proc_name=$(cat /etc/init.d/DbSecuritySpt | grep -v ^#)
+pids="$(ps -elf | grep "${proc_name}" | grep -v grep | awk '{print $4}')"
 if [ -n "$pids" ]
 then
     for pid in $pids; do kill_proc $pid; done
@@ -226,9 +227,9 @@ fi
 # --------------------------------------------------
 # 清除billgates病毒文件
 
-if [ -f "/tmp/9999" ]
+if [ -f ${proc_name} ]
 then
-    kill_file /tmp/9999
+    kill_file ${proc_name}
 fi
 
 # 删除病毒程序文件
@@ -271,3 +272,11 @@ rm -f /etc/rc[1-5].d/S99selinux
 echo "[+] clean file --> /etc/rc[1-5].d" | tee -a $log_file
 
 echo "[+] end clean --> $(date)" | tee -a $log_file
+# --------------------------------------------------
+# 安装rkhunter验证查杀结果
+pkg=rkhunter
+echo "[+] install package --> $pkg" | tee -a $log_file
+yum install epel-release rkhunter -y
+echo "[+] start system scan --> rkhunter -c --skip-keypress" | tee -a $log_file
+rkhunter -c --skip-keypress
+echo "[+] end scan --> rkhunter -c --skip-keypress" | tee -a $log_file
