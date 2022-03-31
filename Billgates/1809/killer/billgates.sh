@@ -428,6 +428,7 @@ then
                 print_message "Success to kill processes ${pid}" "ok"
             else
                 print_message "Fail to kill processes. Error code is ${?}." "error"
+                exit ${?}
             fi
         done
     fi
@@ -445,6 +446,7 @@ then
                 print_message "Success to kill processes ${pid}" "ok"
             else
                 print_message "Fail to kill processes. Error code is ${?}." "error"
+                exit ${?}
             fi
         done
     fi
@@ -462,6 +464,7 @@ then
                 print_message "Success to kill processes ${pid}" "ok"
             else
                 print_message "Fail to kill processes. Error code is ${?}." "error"
+                exit ${?}
             fi
         done
     fi
@@ -479,6 +482,7 @@ then
             print_message "Success to kill file ${proc_name}" "ok"
         else
             print_message "Fail to kill file. Error code is ${?}." "error"
+            exit ${?}
         fi
     fi
 fi
@@ -491,6 +495,7 @@ then
         print_message "Success to kill file /usr/bin/.sshd" "ok"
     else
         print_message "Fail to kill file. Error code is ${?}." "error"
+        exit ${?}
     fi
 fi
 
@@ -502,6 +507,7 @@ then
         print_message "Success to kill dir /usr/bin/bsd-port" "ok"
     else
         print_message "Fail to kill dir. Error code is ${?}." "error"
+        exit ${?}
     fi
 fi
 
@@ -513,6 +519,7 @@ then
         print_message "Success to kill file /tmp/moni.lod" "ok"
     else
         print_message "Fail to kill file. Error code is ${?}." "error"
+        exit ${?}
     fi
 fi
 
@@ -523,6 +530,7 @@ then
         print_message "Success to kill file /tmp/gates.lod" "ok"
     else
         print_message "Fail to kill file. Error code is ${?}." "error"
+        exit ${?}
     fi
 fi
 
@@ -534,6 +542,7 @@ then
         print_message "Success to kill file /etc/init.d/selinux" "ok"
     else
         print_message "Fail to kill file. Error code is ${?}." "error"
+        exit ${?}
     fi
 fi
 
@@ -545,6 +554,7 @@ then
         print_message "Success to kill file /etc/init.d/DbSecuritySpt" "ok"
     else
         print_message "Fail to kill file. Error code is ${?}." "error"
+        exit ${?}
     fi
 fi
 
@@ -556,6 +566,7 @@ then
         print_message "Success" "ok"
     else
         print_message "Fail" "error"
+        exit 127
     fi
 fi
 
