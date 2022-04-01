@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 上次修改时间 --> 2022-3-31
+# 上次修改时间 --> 2022-4-1
 # --------------------------------------------------
 # 创建备份目录，以清除时间命名
 
@@ -59,7 +59,7 @@ print_message() {
 #          NAME:  kill_file()
 #   DESCRIPTION:  文件清除函数
 #    PARAMETERS:  $1 = File to delete
-#       RETURNS:  0 = File deleted
+#       RETURNS:  0 = File deleted or file not found
 #                 20 = Could not find command cp
 #                 21 = Could not find command chattr
 #                 22 = Could not find command rm
@@ -77,9 +77,8 @@ kill_file()
             if command -v chattr > /dev/null 2>&1;then
                 chattr -ia $file
                 if command -v rm > /dev/null 2>&1;then
-                # print_message "[+] clean file --> $1" "info" | tee -a $log_file
                     rm -rf $file
-                    rcode= "${?}"
+                    rcode="${?}"
                 else
                     rcode="22"
                 fi
@@ -89,6 +88,8 @@ kill_file()
         else
             rcode="20"
         fi
+    else
+        rcode="0"
     fi
     return "${rcode}"
 }
@@ -155,7 +156,6 @@ kill_proc()
                     proc_name=$(basename $(ps -fp $proc | awk 'NR>=2 {print $8}'))
                     if command -v cat > /dev/null 2>&1;then
                         cat /proc/$proc/exe >> $log_dir/process/$proc-$proc_name.dump
-                        # echo "[+] clean process --> $(ps -fp $1 | awk 'NR>=2 {print $2,$8}')" | tee -a $log_file
                         if command -v kill > /dev/null 2>&1;then
                             kill -9 $proc
                             rcode="${?}"
@@ -220,7 +220,6 @@ kill_cron()
                                                 echo '' > $cron_file
                                                 rcode="${?}"
                                             fi
-                                            # echo "[+] clean crontab --> $crontab" | tee -a $log_file
                                         fi
                                     else
                                         rcode="27"
@@ -274,62 +273,6 @@ recover_sysfile()
     rcode="${?}"
     return "${rcode}"
 }
-
-# # 恢复系统文件netstat
-# if [ -f "/usr/bin/dpkgd/netstat" ]
-# then
-# 	$busybox chattr -ai /bin/netstat
-# 	rm -f /bin/netstat
-	
-# 	$busybox chattr -ai /usr/bin/netstat
-# 	rm -f /usr/bin/netstat
-    
-#     yum reinstall net-tools -y
-
-#     echo "[+] recover file --> netstat" | tee -a $log_file
-# fi
-
-# # 恢复系统文件lsof
-# if [ -f "/usr/bin/dpkgd/lsof" ]
-# then
-# 	$busybox chattr -ai /bin/lsof
-# 	rm -f /bin/lsof
-	
-# 	$busybox chattr -ai /usr/bin/lsof 
-# 	rm -f /usr/bin/lsof
-
-#     yum reinstall lsof -y
-
-#     echo "[+] recover file --> lsof" | tee -a $log_file
-# fi
-
-# # 恢复系统文件ps
-# if [ -f "/usr/bin/dpkgd/ps" ]
-# then
-# 	$busybox chattr -ai /bin/ps
-# 	rm -f /bin/ps
-	
-# 	$busybox chattr -ai /usr/bin/ps
-# 	rm -f /usr/bin/ps
-
-#     yum reinstall procps -y
-
-#     echo "[+] recover file --> ps" | tee -a $log_file
-# fi
-
-# # 恢复系统文件ss
-# if [ -f "/usr/bin/dpkgd/ss" ]
-# then
-# 	$busybox chattr -ai /bin/ss
-# 	rm -f /bin/ss
-	
-# 	$busybox chattr -ai /usr/bin/ss
-# 	rm -f /usr/bin/ss
-
-#     yum reinstall iproute -y
-
-#     echo "[+] recover file --> ss" | tee -a $log_file
-# fi
 
 # --------------------------------------------------
 # 下载busybox工具
