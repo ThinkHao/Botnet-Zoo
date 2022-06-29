@@ -255,21 +255,39 @@ recover_sysfile()
 {
     local rcode
     local binfiles
+    local binpaths
+    local binprocs
 
     binfiles=("netstat" "lsof" "ps" "ss")
+    binpaths=("/usr/bin" "/usr/sbin" "/bin" "/usr/local/bin")
+    binprocs=("net-tools" "lsof" "procps" "iproute")
 
     for binfile in ${binfiles[@]}
     do
-        if [[ -f /bin/$binfile ]];then
-            $busybox chattr -ai /bin/$binfile
-            rm -f /bin/$binfile
+        for binpath in ${binpaths[@]}
+        do
+        if [[ -f $binpath/$binfile ]];then
+            $busybox chattr -ai $binpath/$binfile
+            rm -f $binpath/$binfile
         fi
-        if [[ -f /usr/bin/$binfile ]];then
-            $busybox chattr -ai /usr/bin/$binfile
-            rm -f /usr/bin/$binfile
-        fi
+        done
     done
-    yum reinstall net-tools lsof procps iproute -y
+    
+    for binproc in ${binprocs[@]}
+    do
+        yum remove -y $binproc
+        yum install -y $binproc
+    done
+    # 对恢复的程序进行加锁，防止二次被替换
+    for binfile in ${binfiles[@]}
+    do
+        for binpath in ${binpaths[@]}
+        do
+        if [[ -f $binpath/$binfile ]];then
+            $busybox chattr +ai $binpath/$binfile
+        fi
+        done
+    done 
     rcode="${?}"
     return "${rcode}"
 }
